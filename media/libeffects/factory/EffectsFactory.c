@@ -77,6 +77,8 @@ int Effect_Process(effect_handle_t self, audio_buffer_t *inBuffer, audio_buffer_
     pthread_mutex_lock(&fx->lib->lock);
     pthread_mutex_unlock(&gLibLock);
 
+    ALOGI("Effect_Process: %s (%s)", fx->lib->name, fx->lib->path);
+
     ret = (*fx->subItfe)->process(fx->subItfe, inBuffer, outBuffer);
     pthread_mutex_unlock(&fx->lib->lock);
     return ret;
@@ -101,6 +103,8 @@ int Effect_Command(effect_handle_t self,
     }
     pthread_mutex_lock(&fx->lib->lock);
     pthread_mutex_unlock(&gLibLock);
+
+    ALOGI("Effect_Process: %s (%s): %d", fx->lib->name, fx->lib->path, cmdCode);
 
     ret = (*fx->subItfe)->command(fx->subItfe, cmdCode, cmdSize, pCmdData, replySize, pReplyData);
     pthread_mutex_unlock(&fx->lib->lock);
@@ -268,7 +272,7 @@ int doEffectCreate(const effect_uuid_t *uuid, int32_t sessionId, int32_t ioId, i
         return -EINVAL;
     }
 
-    ALOGV("EffectCreate() UUID: %08X-%04X-%04X-%04X-%02X%02X%02X%02X%02X%02X\n",
+    ALOGI("EffectCreate() UUID: %08X-%04X-%04X-%04X-%02X%02X%02X%02X%02X%02X\n",
           uuid->timeLow, uuid->timeMid, uuid->timeHiAndVersion,
           uuid->clockSeq, uuid->node[0], uuid->node[1], uuid->node[2],
           uuid->node[3], uuid->node[4], uuid->node[5]);
@@ -302,7 +306,7 @@ int doEffectCreate(const effect_uuid_t *uuid, int32_t sessionId, int32_t ioId, i
             ret = -ENOSYS;
         }
     } else {
-        ALOGI("EffectCreate() create_effect");
+        ALOGW("EffectCreate() create_effect: session %d io %d device %d", sessionId, ioId, deviceId);
         ret = l->desc->create_effect(uuid, sessionId, ioId, &itfe);
     }
 
@@ -316,10 +320,10 @@ int doEffectCreate(const effect_uuid_t *uuid, int32_t sessionId, int32_t ioId, i
     fx->subItfe = itfe;
     if ((*itfe)->process_reverse != NULL) {
         fx->itfe = (struct effect_interface_s *)&gInterfaceWithReverse;
-        ALOGV("EffectCreate() gInterfaceWithReverse");
+        ALOGW("EffectCreate() gInterfaceWithReverse");
     }   else {
         fx->itfe = (struct effect_interface_s *)&gInterface;
-        ALOGV("EffectCreate() gInterface");
+        ALOGW("EffectCreate() gInterface");
     }
     fx->lib = l;
 
@@ -330,7 +334,7 @@ int doEffectCreate(const effect_uuid_t *uuid, int32_t sessionId, int32_t ioId, i
 
     *pHandle = (effect_handle_t)fx;
 
-    ALOGV("EffectCreate() created entry %p with sub itfe %p in library %s", *pHandle, itfe, l->name);
+    ALOGW("EffectCreate() created entry %p with sub itfe %p in library %s", *pHandle, itfe, l->name);
 
 exit:
     pthread_mutex_unlock(&gLibLock);

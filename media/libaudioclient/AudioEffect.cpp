@@ -74,6 +74,15 @@ status_t AudioEffect::set(const effect_uuid_t *type,
 
     ALOGV("set %p uuid: %p timeLow %08x", this, type, type ? type->timeLow : 0);
 
+    char typeStr[512] = {};
+    char uuidStr[512] = {};
+
+    guidToString(type, typeStr, 511);
+    guidToString(uuid, uuidStr, 511);
+
+    ALOGW("AudioEffect::set string\n - type: %s\n - uuid: %s, session %d, io %d",
+            typeStr, uuidStr, sessionId, io);
+
     if (mIEffect != 0) {
         ALOGW("Effect already in use");
         return INVALID_OPERATION;

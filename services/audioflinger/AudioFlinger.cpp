@@ -4219,6 +4219,8 @@ status_t AudioFlinger::createEffect(const media::CreateEffectRequest& request,
             lStatus = BAD_VALUE;
             goto Exit;
         }
+    } else if (sessionId == -22) {
+         ALOGE("%s: creating DTS-X Ultra effect", __func__);
     } else {
         // general sessionId.
 
